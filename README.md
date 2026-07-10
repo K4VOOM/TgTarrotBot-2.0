@@ -9,6 +9,7 @@ my-bot/
 ├── .env               
 ├── .gitignore
 ├── requirements.txt
+├── handlers.py
 └── main.py            
 ```
 

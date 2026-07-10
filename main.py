@@ -1,9 +1,9 @@
 import asyncio
 import os
 from aiogram import Bot, Dispatcher
-from aiogram.filters import Command
-from aiogram.types import Message
 from dotenv import load_dotenv
+
+from handlers import router
 
 load_dotenv()
 
@@ -14,11 +14,10 @@ if not TOKEN:
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-@dp.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("start")
+dp.include_router(router)
 
 async def main():
+    # Запускаємо бота
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
