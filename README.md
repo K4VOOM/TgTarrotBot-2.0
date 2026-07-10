@@ -4,13 +4,15 @@
 ## Структура проєкту
 
 ```
-my-bot/
-├── venv/              
+TgTarrotBot-2.0/
+├── venv/   
+├── readme_photo/           
 ├── .env               
 ├── .gitignore
 ├── requirements.txt
 ├── handlers.py
 ├── keyboards.py
+├── database.py
 └── main.py            
 ```
 #діаграма проєкту
