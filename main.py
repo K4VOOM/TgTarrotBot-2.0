@@ -4,6 +4,7 @@ from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
 from handlers import router
+import database
 
 load_dotenv()
 
@@ -16,8 +17,9 @@ dp = Dispatcher()
 
 dp.include_router(router)
 
+
 async def main():
-    # Запускаємо бота
+    database.init_db()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

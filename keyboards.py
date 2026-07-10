@@ -7,6 +7,6 @@ main_menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="Налаштування")],
         [KeyboardButton(text="Баланс")],
     ],
-    resize_keyboard=True, # Робить кнопки нормального розміру (не на пів екрана)
-    input_field_placeholder="Обери дію в меню нижче..." # Текст у полі вводу
+    resize_keyboard=True,
+    input_field_placeholder="Обери дію в меню нижче..."
 )
