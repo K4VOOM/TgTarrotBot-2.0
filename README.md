@@ -1,16 +1,15 @@
-# Telegram Bot (aiogram 3.x)
+# TgTarrotBot-2.0
 
-Простий телеграм-бот на Python з використанням aiogram.
 
 ## Структура проєкту
 
 ```
 my-bot/
-├── venv/              # віртуальне середовище (не в git)
-├── .env               # секрети, токен бота (не в git)
+├── venv/              
+├── .env               
 ├── .gitignore
 ├── requirements.txt
-└── bot.py             # основний файл бота
+└── main.py            
 ```
 
 ## Встановлення
@@ -18,8 +17,8 @@ my-bot/
 1. Клонуй репозиторій і перейди в папку проєкту:
 
 ```bash
-git clone <URL_репозиторію>
-cd my-bot
+git clone <https://github.com/K4VOOM/TgTarrotBot-2.0.git>
+cd TgTarrotBot-2.0
 ```
 
 2. Створи та активуй віртуальне середовище:
