@@ -13,6 +13,9 @@ my-bot/
 ├── keyboards.py
 └── main.py            
 ```
+#діаграма проєкту
+
+![Діаграма проєкту](readme_photo/project_diagram.png)
 
 ## Встановлення
 
