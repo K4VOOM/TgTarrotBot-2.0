@@ -10,6 +10,7 @@ my-bot/
 ├── .gitignore
 ├── requirements.txt
 ├── handlers.py
+├── keyboards.py
 └── main.py            
 ```
 
