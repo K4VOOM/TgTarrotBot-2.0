@@ -55,7 +55,7 @@ BOT_TOKEN=твій_токен_від_BotFather
 ## Запуск
 
 ```bash
-python bot.py
+python main.py
 ```
 
 ## Залежності
