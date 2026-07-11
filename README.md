@@ -5,16 +5,27 @@
 
 ```
 TgTarrotBot-2.0/
-├── venv/   
-├── readme_photo/           
-├── .env               
-├── .gitignore
-├── requirements.txt
-├── handlers.py
-├── keyboards.py
-├── database.py
-└── main.py            
+├── .venv/                      # Віртуальне середовище Python
+├── card_photo/                 # Папка із зображеннями карт Таро
+│   └── classic/                # Класична колода
+│       ├── Cups/               # Кубки
+│       ├── Major_Arcana/       # Старші Аркани
+│       ├── Pentacles/          # Пентаклі
+│       ├── Swords/             # Мечі
+│       └── Wands/              # Жезли
+├── readme_photo/               # Зображення для документації README
+├── .env                        # Файл із конфігураційними токенами та змінними оточення
+├── .gitignore                  # Список файлів, що ігноруються Git
+├── database.py                 # Логіка та налаштування роботи з базою даних SQLite
+├── handlers.py                 # Обробники текстових повідомлень та callback-запитів
+├── keyboards.py                # Конструктор клавіатур бота
+├── list_users.db               # Файл бази даних SQLite
+├── main.py                     # Головний файл для запуску асинхронного бота
+├── README.md                   # Документація проєкту
+├── requirements.txt            # Список залежностей та бібліотек
+└── tarrot_data.py              # Словник із назвами, описами та шляхами до карт
 ```
+
 #діаграма проєкту
 
 ![Діаграма проєкту](readme_photo/project_diagram.png)
