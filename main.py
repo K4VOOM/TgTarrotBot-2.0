@@ -1,11 +1,13 @@
 import asyncio
 import os
+from datetime import datetime
 from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 
 from handlers import router
 import database
+import day_card
 
 load_dotenv()
 
@@ -20,6 +22,23 @@ dp.include_router(router)
 
 scheduler = AsyncIOScheduler(timezone="Europe/Kyiv")
 scheduler.add_job(database.reset_daily_cards, "cron", hour=0, minute=0)
+
+
+async def send_daily_notifications():
+    """Відправляє карти дня користувачам за їх часом сповіщень."""
+    current_time = datetime.now().strftime("%H:%M")
+    users = database.get_users_by_notify_time(current_time)
+    
+    if users:
+        print(f"📨 Відправка сповіщень {len(users)} користувачам в {current_time}")
+        for user_tuple in users:
+            user_id = user_tuple[0]
+            await day_card.send_daily_card_notification(bot, user_id)
+    else:
+        print(f"⏰ Час {current_time}: користувачів для сповіщення не знайдено")
+
+
+scheduler.add_job(send_daily_notifications, "cron", hour="*", minute="*")
 
 
 async def main():

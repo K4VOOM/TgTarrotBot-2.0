@@ -58,3 +58,17 @@ async def get_day_card_for_user(user_id: int) -> tuple[str, str]:
 
     message_text = await generate_day_card_message(card_name, card_description)
     return message_text, photo_path
+
+
+async def send_daily_card_notification(bot, user_id: int) -> bool:
+    """Відправляє карту дня користувачу. Повертає True якщо успішно."""
+    try:
+        message_text, photo_path = await get_day_card_for_user(user_id)
+        from aiogram.types import FSInputFile
+        photo = FSInputFile(photo_path)
+        await bot.send_photo(chat_id=user_id, photo=photo)
+        await bot.send_message(chat_id=user_id, text=message_text)
+        return True
+    except Exception as e:
+        print(f"❌ Помилка при відправці карти користувачу {user_id}: {e}")
+        return False
