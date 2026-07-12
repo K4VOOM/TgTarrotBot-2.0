@@ -30,7 +30,7 @@ scheduler.add_job(database.reset_daily_cards, "cron", hour=0, minute=0)
 async def send_daily_notifications():
     current_time = datetime.now().strftime("%H:%M")
     users = database.get_users_by_notify_time(current_time)
-    
+
     if users:
         for user_tuple in users:
             user_id = user_tuple[0]

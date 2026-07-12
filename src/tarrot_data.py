@@ -35,7 +35,7 @@ tarrot_desk = {
         "name": "Імператриця",
         "description": (
             "3. Імператриця. Уособлює гармонію, процвітання та зростання. В будь-якому розкладі "
-            "в can символізує стабільність та позитивний розвиток подій."
+            "вона символізує стабільність та позитивний розвиток подій."
         ),
         "classic_photo": "card_photo/classic/Major_Arcana/the_empress.jpg"
     },
@@ -494,8 +494,16 @@ tarrot_desk = {
     }
 }
 
+
 def get_random_card():
-        return random.choice(list(tarrot_desk.items()))[0]
+    """Повертає випадковий системний ключ карти (напр. 'the_fool')."""
+    return random.choice(list(tarrot_desk.keys()))
+
+
+def get_random_unique_cards(count: int) -> list:
+    """Повертає `count` різних (без повторів) системних ключів карт."""
+    return random.sample(list(tarrot_desk.keys()), count)
+
 
 def get_something_for_card(system_name: str, something: str):
     value = tarrot_desk[system_name][something]

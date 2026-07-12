@@ -1,3 +1,5 @@
+from aiogram.types import FSInputFile
+
 import database
 import gemini_client
 import tarrot_data
@@ -64,7 +66,6 @@ async def send_daily_card_notification(bot, user_id: int) -> bool:
     """Відправляє карту дня користувачу. Повертає True якщо успішно."""
     try:
         message_text, photo_path = await get_day_card_for_user(user_id)
-        from aiogram.types import FSInputFile
         photo = FSInputFile(photo_path)
         await bot.send_photo(chat_id=user_id, photo=photo)
         await bot.send_message(chat_id=user_id, text=message_text)

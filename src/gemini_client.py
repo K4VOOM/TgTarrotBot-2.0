@@ -4,17 +4,15 @@ import time
 from collections import deque
 
 from google import genai
-from dotenv import load_dotenv
 
-load_dotenv()
+import config
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
+if not config.GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY не знайдено! Перевір .env файл")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=config.GEMINI_API_KEY)
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+DEFAULT_MODEL = config.GEMINI_MODEL
 
 RPM_LIMIT = int(os.getenv("GEMINI_RPM_LIMIT", "15"))
 

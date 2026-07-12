@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🃏 Карта дня")],
-        [KeyboardButton(text="🔮 Росклад")],
+        [KeyboardButton(text="🔮 Розклад")],
         [KeyboardButton(text="⚙️ Налаштування")],
         [KeyboardButton(text="💳 Баланс")],
     ],
@@ -70,6 +70,25 @@ def get_mono_confirm_keyboard(user_id: int) -> InlineKeyboardMarkup:
     builder.button(
         text="✅ Зарахувати баланс",
         callback_data=f"approve_mono_{user_id}"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_reading_menu_keyboard(yes_no_price: float, three_cards_price: float) -> InlineKeyboardMarkup:
+    """Клавіатура вибору типу розкладу в меню '🔮 Розклад'."""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=f"☯️ Так / Ні — {yes_no_price:.0f} грн",
+        callback_data="reading_yes_no"
+    )
+    builder.button(
+        text=f"🃏🃏🃏 Розклад на 3 карти — {three_cards_price:.0f} грн",
+        callback_data="reading_three_cards"
+    )
+    builder.button(
+        text="✝️ Кельський хрест",
+        callback_data="reading_celtic_cross"
     )
     builder.adjust(1)
     return builder.as_markup()
