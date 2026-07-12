@@ -21,18 +21,25 @@
 
 ```
 TgTarrotBot-2.0/
-├── main.py              # Entry point: bot initialization, dispatcher, scheduler
-├── handlers.py          # Router з усіма message/callback handlers
-├── keyboards.py         # ReplyKeyboardMarkup, InlineKeyboardMarkup builders
-├── database.py          # CRUD для users table, helper queries
-├── day_card.py          # Генерація карт, розсилка, Gemini wrapper
-├── gemini_client.py     # Google Gemini API client
-├── tarrot_data.py       # Dict структура карт (назви, описи, шляхи до фото)
-├── card_photo/          # Зображення карт по категоріях
-├── .env                 # BOT_TOKEN, GEMINI_API_KEY (не комітити)
-├── list_users.db        # SQLite файл (генерується автоматично)
-└── requirements.txt     # Залежності
+├── src/
+│   ├── main.py              # Entry point: bot initialization, dispatcher, scheduler
+│   ├── handlers.py          # Router з усіма message/callback handlers
+│   ├── keyboards.py         # ReplyKeyboardMarkup, InlineKeyboardMarkup builders
+│   ├── database.py          # CRUD для users table, helper queries
+│   ├── day_card.py          # Генерація карт, розсилка, Gemini wrapper
+│   ├── gemini_client.py     # Google Gemini API client
+│   └── tarrot_data.py       # Dict структура карт (назви, описи, шляхи до фото)
+├── assets/
+│   ├── card_photo/          # Зображення карт по категоріях
+│   └── readme_photo/        # Зображення для README
+├── data/
+│   └── list_users.db        # SQLite файл (генерується автоматично)
+├── .env                     # BOT_TOKEN, GEMINI_API_KEY (не комітити)
+├── requirements.txt         # Залежності
+└── README.md                # Цей файл
 ```
+
+**Важливо:** Шляхи до файлів (БД, картки) побудовані відносно кореня проекту, тому бот працюватиме з будь-якого місця без змін.
 
 ## Схема БД
 
@@ -175,13 +182,29 @@ source venv/bin/activate  # або venv\Scripts\activate на Windows
 # 2. Install deps
 pip install -r requirements.txt
 
-# 3. Configure .env
+# 3. Configure .env (у кореневій папці проекту)
 echo "BOT_TOKEN=..." > .env
 echo "GEMINI_API_KEY=..." >> .env
 
-# 4. Run
-python main.py
+# 4. Run (Вибери один з варіантів)
+
+# Вариант 1: Прямо Python (рекомендовано)
+python src/main.py
+
+# Вариант 2: Через Python скрипт (работает на всех ОС)
+python run_bot.py
+
+# Вариант 3: Через shell скрипт (Linux/macOS)
+bash run.sh
+
+# Вариант 4: Через batch файл (Windows)
+run.bat
 ```
+
+**На різних пристроях код працюватиме без змін:**
+- Шляхи до БД та картинок побудовані з використанням `Path(__file__).parent`
+- Бот знайде все потрібне від кореня проекту
+- Можна запустити з будь-якого каталогу
 
 ## Конфіг
 

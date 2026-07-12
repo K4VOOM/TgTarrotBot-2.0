@@ -1,10 +1,13 @@
 import sqlite3
+from pathlib import Path
 
-DB_NAME = "list_users.db"
+# Знайти корінь проекту та побудувати портативний шлях до БД
+PROJECT_ROOT = Path(__file__).parent.parent
+DB_PATH = PROJECT_ROOT / "data" / "list_users.db"
 
 
 def get_connection():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(str(DB_PATH))
 
 
 def init_db():
