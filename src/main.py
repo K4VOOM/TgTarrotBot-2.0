@@ -1,5 +1,4 @@
 import asyncio
-import os
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -18,7 +17,7 @@ if not TOKEN:
     raise ValueError("BOT_TOKEN не знайдено! Перевір .env файл")
 
 bot = Bot(token=TOKEN)
-config.BOT = bot  # Зберегти bot в config
+config.BOT = bot
 
 dp = Dispatcher()
 

@@ -14,7 +14,6 @@ import day_card
 
 router = Router()
 
-# Отримати ADMIN_ID з конфіга
 ADMIN_ID = config.ADMIN_ID
 
 
@@ -38,7 +37,6 @@ MONO_JAR_LINK = "https://send.monobank.ua/jar/2HCxsak4Bd"
 MONO_CARD = "4874 1000 2567 2372"
 
 
-# Флаг для відміни розсилки (зберігається в контексті)
 broadcast_cancelled = False
 
 
@@ -142,28 +140,23 @@ async def topup_mono(callback: CallbackQuery, state: FSMContext):
 
 @router.message(UserStates.waiting_for_mono_screenshot)
 async def process_mono_screenshot(message: Message, state: FSMContext):
-    """Обробка скріншоту оплати через Mono."""
-    
-    # Перевірити що це фото
+
     if not message.photo:
         await message.answer("❌ Надішли фото скріншоту. Спробуй ще раз.")
         return
-    
-    # Отримати найбільшу версію фото
+
     photo = message.photo[-1]
     
     user_id = message.from_user.id
     username = message.from_user.username or "anonymous"
     first_name = message.from_user.first_name or "User"
-    
-    # Отримати файл
+
     file_id = photo.file_id
     
     await message.answer(
         "✅ Скріншот отримано. Адміністратор перевірить платіж."
     )
-    
-    # Надіслати адміну скріншот з деталями
+
     bot = config.BOT
     
     admin_message = (
@@ -235,15 +228,12 @@ async def admin_users_list(callback: CallbackQuery):
         users_text = "👥 СПИСОК КОРИСТУВАЧІВ:\n\n"
         for user_id, username, balance in users:
             users_text += f"ID: {user_id} | @{username or 'anonymous'} | Баланс: {balance:.2f}₴\n"
-    
-    # Якщо текст більш ніж 4096 символів, отправити як файл чи розбити на повідомлення
+
     if len(users_text) > 4096:
-        # Отправити першу частину, потім решту
         await callback.message.edit_text(
             "👥 СПИСОК КОРИСТУВАЧІВ:\n\n(Дивись нижче усіх користувачів)",
             reply_markup=keyboards.get_admin_keyboard()
         )
-        # Розбити на частини по 4000 символів
         for i in range(0, len(users_text), 4000):
             await callback.message.answer(users_text[i:i+4000])
     else:
@@ -283,8 +273,7 @@ async def process_broadcast(message: Message, state: FSMContext):
         await message.answer("❌ Немає користувачів для розсилки.")
         await state.clear()
         return
-    
-    # Показати повідомлення з кнопкою відміни
+
     cancel_markup = keyboards.InlineKeyboardMarkup(
         inline_keyboard=[[keyboards.InlineKeyboardBuilder().button(
             text="❌ Відмінити розсилку",
@@ -300,14 +289,12 @@ async def process_broadcast(message: Message, state: FSMContext):
     
     sent = 0
     failed = 0
-    
-    # Встановити флаг у стану
+
     await state.update_data(broadcast_cancelled=False, progress_msg_id=progress_msg.message_id)
     
     bot = config.BOT
     
     for idx, (user_id, _, _) in enumerate(users):
-        # Перевірити чи розсилка була відмінена
         state_data = await state.get_data()
         if state_data.get("broadcast_cancelled"):
             await progress_msg.edit_text("❌ Розсилка відмінена адміністратором.")
@@ -319,8 +306,7 @@ async def process_broadcast(message: Message, state: FSMContext):
             sent += 1
         except Exception as e:
             failed += 1
-        
-        # Оновити прогрес кожні 10 повідомлень
+
         if (idx + 1) % 10 == 0:
             await progress_msg.edit_text(
                 f"⏳ Розсилка...\n"
@@ -366,8 +352,7 @@ async def process_bug_report(message: Message, state: FSMContext):
     bug_text = message.text
     user_id = message.from_user.id
     username = message.from_user.username or "anonymous"
-    
-    # Відправити звіт адміну
+
     bot = config.BOT
     admin_message = (
         f"🐛 ЗВІТ ПРО БАГ:\n\n"
@@ -411,8 +396,7 @@ async def process_stars_amount(message: Message, state: FSMContext):
             return
         
         user_id = message.from_user.id
-        
-        # Надіслати інвойс для оплати через Telegram Stars
+
         bot = config.BOT
         
         invoice_text = (
@@ -428,8 +412,8 @@ async def process_stars_amount(message: Message, state: FSMContext):
             title=f"⭐ {stars} Telegram Stars",
             description=f"Поповнення баланс на {stars}₴",
             payload=f"stars_{stars}_{user_id}",
-            provider_token="",  # Telegram обробляє Star платежі автоматично
-            currency="XTR",  # XTR - Telegram Stars
+            provider_token="",
+            currency="XTR",
             prices=[
                 {"label": f"{stars} ⭐ Stars", "amount": stars}
             ]
@@ -444,10 +428,8 @@ async def process_stars_amount(message: Message, state: FSMContext):
 
 @router.message(F.successful_payment)
 async def successful_payment(message: Message):
-    """Обробка успішного платежу через Telegram Stars."""
     payment = message.successful_payment
-    
-    # Парсити payload щоб дізнатися скільки зірочок куплено
+
     try:
         payload_parts = payment.invoice_payload.split("_")
         stars = int(payload_parts[1])
@@ -474,15 +456,13 @@ async def approve_mono_payment(callback: CallbackQuery, state: FSMContext):
     if callback.from_user.id != ADMIN_ID:
         await callback.answer("❌ Доступ заборонено!", show_alert=True)
         return
-    
-    # Парсити user_id з callback_data
+
     user_id = int(callback.data.split("_")[2])
     
     await callback.message.answer(
         f"💰 Введи суму (в гривнях) яка буде зарахована користувачу (ID: {user_id}):"
     )
-    
-    # Зберегти user_id у стані для подальшого використання
+
     await state.set_state(AdminStates.waiting_for_payment_amount)
     await state.update_data(user_id=user_id)
     
@@ -491,7 +471,6 @@ async def approve_mono_payment(callback: CallbackQuery, state: FSMContext):
 
 @router.message(AdminStates.waiting_for_payment_amount)
 async def process_payment_amount(message: Message, state: FSMContext):
-    """Обробка суми для зарахування."""
     if message.from_user.id != ADMIN_ID:
         await message.answer("❌ Доступ заборонено.")
         return
@@ -510,12 +489,10 @@ async def process_payment_amount(message: Message, state: FSMContext):
             await message.answer("❌ Помилка: користувач не знайдений")
             await state.clear()
             return
-        
-        # Додати баланс користувачу
+
         database.add_balance(user_id, amount)
         new_balance = database.get_balance(user_id)
-        
-        # Повідомити користувача
+
         bot = config.BOT
         user_message = (
             f"✅ ПЛАТІЖ ПІДТВЕРДЖЕНО!\n\n"
@@ -526,9 +503,8 @@ async def process_payment_amount(message: Message, state: FSMContext):
         try:
             await bot.send_message(user_id, user_message)
         except Exception as e:
-            pass  # Користувач заблокував бота чи видалив
-        
-        # Повідомити адміна
+            pass
+
         await message.answer(
             f"✅ ПЛАТІЖ ЗАРАХОВАНО:\n\n"
             f"👤 Користувач ID: {user_id}\n"

@@ -34,7 +34,6 @@ def get_settings_keyboard(notify_time: str, notify_enabled: int) -> InlineKeyboa
 
 
 def get_balance_keyboard() -> InlineKeyboardMarkup:
-    """Клавіатура для поповнення балансу."""
     builder = InlineKeyboardBuilder()
     builder.button(
         text="💶 Поповнити через Mono",
@@ -49,7 +48,6 @@ def get_balance_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_admin_keyboard() -> InlineKeyboardMarkup:
-    """Клавіатура для адміна."""
     builder = InlineKeyboardBuilder()
     builder.button(
         text="📊 Статистика",
@@ -68,7 +66,6 @@ def get_admin_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_mono_confirm_keyboard(user_id: int) -> InlineKeyboardMarkup:
-    """Клавіатура для підтвердження платежу через Mono."""
     builder = InlineKeyboardBuilder()
     builder.button(
         text="✅ Зарахувати баланс",
