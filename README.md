@@ -1,257 +1,240 @@
 # TgTarrotBot-2.0
 
-Асинхронний Telegram бот на Python з AI-інтеграцією Google Gemini та SQLite.
+Telegram-бот на Python для щоденної карти дня, налаштувань сповіщень, поповнення балансу та адмін-управління.
 
-## Архітектура
+## Що вміє бот
 
-**Tech Stack:**
-- `aiogram 3.x` — асинхронна бібліотека для Telegram Bot API
-- `google-generativeai` — Google Gemini API для генерації текстів
-- `apscheduler` — асинхронний scheduler для планування завдань
-- `SQLite 3` — локальна БД для збереження стану користувачів
-- `Python 3.10+` — asyncio, FSM (Finite State Machine)
+- видає щоденну карту дня з текстовою інтерпретацією;
+- зберігає вибрану карту на день для кожного користувача;
+- надсилає автоматичні сповіщення у заданий час;
+- дозволяє вмикати та вимикати сповіщення;
+- показує баланс користувача;
+- підтримує поповнення через Mono та Telegram Stars;
+- приймає баг-репорти та пересилає їх адміну;
+- має адмін-панель зі статистикою, списком користувачів і розсилкою.
 
-**Дизайн:**
-- Event loop: aiogram dispatcher + apscheduler co-exist
-- Message polling, callback queries, FSM для обробки вводу
-- Scheduler запускається кожну хвилину, перевіряє БД на предмет розсилок
-- Усі I/O операції асинхронні (БД, API запити)
+## Технології
 
-## Структура файлів
+- `aiogram 3.x` — Telegram Bot API;
+- `APScheduler` — планувальник задач;
+- `SQLite` — локальна база даних;
+- `google-genai` — генерація тексту для карти дня;
+- `python-dotenv` — завантаження змінних середовища.
 
-```
+## Структура проєкту
+
+```text
 TgTarrotBot-2.0/
 ├── src/
-│   ├── main.py              # Entry point: bot initialization, dispatcher, scheduler
-│   ├── handlers.py          # Router з усіма message/callback handlers
-│   ├── keyboards.py         # ReplyKeyboardMarkup, InlineKeyboardMarkup builders
-│   ├── database.py          # CRUD для users table, helper queries
-│   ├── day_card.py          # Генерація карт, розсилка, Gemini wrapper
-│   ├── gemini_client.py     # Google Gemini API client
-│   └── tarrot_data.py       # Dict структура карт (назви, описи, шляхи до фото)
+│   ├── main.py           # Точка входу: запуск бота і scheduler
+│   ├── handlers.py       # Усі message/callback handlers
+│   ├── keyboards.py      # Reply/Inline клавіатури
+│   ├── database.py       # Робота з SQLite
+│   ├── day_card.py       # Логіка видачі карти дня
+│   ├── gemini_client.py  # Виклики до Google GenAI
+│   ├── config.py         # Завантаження .env і глобальні налаштування
+│   └── tarrot_data.py    # База даних карт і шляхів до зображень
 ├── assets/
-│   ├── card_photo/          # Зображення карт по категоріях
-│   └── readme_photo/        # Зображення для README
+│   ├── card_photo/       # Зображення карт
+│   └── readme_photo/     # Картинки для README
 ├── data/
-│   └── list_users.db        # SQLite файл (генерується автоматично)
-├── .env                     # BOT_TOKEN, GEMINI_API_KEY (не комітити)
-├── requirements.txt         # Залежності
-└── README.md                # Цей файл
+│   └── list_users.db     # SQLite база, створюється автоматично
+├── .env
+├── requirements.txt
+└── README.md
 ```
 
-**Важливо:** Шляхи до файлів (БД, картки) побудовані відносно кореня проекту, тому бот працюватиме з будь-якого місця без змін.
+## Як це працює
 
-## Схема БД
+### Основний сценарій
+
+1. Користувач натискає `/start`.
+2. Бот створює запис у `users`, якщо його ще немає.
+3. Користувач відкриває «🃏 Карта дня».
+4. Якщо на сьогодні карта ще не була видана, бот вибирає її випадково та зберігає в БД.
+5. Генерується текст інтерпретації через Google GenAI.
+6. Бот надсилає зображення карти та текст повідомлення.
+
+### Автоматичні сповіщення
+
+- кожну хвилину `src/main.py` перевіряє, чи є користувачі з часом сповіщення, що збігається з поточним;
+- о 00:00 скидається прапорець і карта дня для всіх користувачів:
+  - `today_give_card = NULL`
+  - `day_card_mes = 0`
+
+### Налаштування
+
+У меню «⚙️ Налаштування» доступно:
+
+- зміна часу сповіщень;
+- увімкнення/вимкнення сповіщень;
+- перехід до форми баг-репорту.
+
+### Баланс
+
+У меню «💳 Баланс» доступні:
+
+- поповнення через Mono;
+- поповнення через Telegram Stars.
+
+### Адмін-функції
+
+Через `/admin` доступно:
+
+- статистика по користувачах;
+- список користувачів з балансом;
+- масова розсилка повідомлень;
+- підтвердження поповнення через Mono.
+
+## Меню та команди
+
+- `/start` — старт бота та створення користувача;
+- `/admin` — адмін-панель;
+- `🃏 Карта дня` — отримати карту дня;
+- `⚙️ Налаштування` — керування сповіщеннями;
+- `💳 Баланс` — перегляд і поповнення балансу.
+
+Примітка: у головному меню є кнопка `🔮 Розклад`, але в поточному коді обробника для неї немає.
+
+## Розклади
+
+Поточна база і стиль проєкту добре підходять для додавання окремого сценарію розкладів через ту ж архітектуру `handlers -> database -> gemini_client`.
+
+Планований UX для кнопки `🔮 Розклад`:
+
+1. Користувач натискає `🔮 Розклад`.
+2. Бот показує вибір із трьох варіантів:
+   - `Так / Ні` — 10 грн;
+   - `Розклад на 3 карти` — поки без реалізації;
+   - `Кельський хрест` — поки без реалізації.
+3. Після вибору `Так / Ні` бот просить написати питання.
+4. Далі бот перевіряє, чи можна на нього відповісти у форматі `так/ні`.
+5. Перевірка і коротка відповідь генеруються через Gemini.
+6. Якщо питання підходить, бот повертає короткий структурований результат.
+
+### Формат відповіді для `Так / Ні`
+
+Орієнтир для генерації тексту:
+
+```text
+🔮 Ваше питання: Чи варто мені змінити роботу?
+
+🃏 Карта відповіді:
+ТАК — ти маєш все для досягнення цілі, дій рішуче
+```
+
+Тобто для цього розкладу бот має:
+
+- прийняти питання від користувача;
+- перевірити, чи воно придатне для відповіді `так/ні`;
+- згенерувати одну відповідь-карту через Gemini;
+- видати короткий і прямий результат без зайвого розгалуження.
+
+### Що вже можна закласти в поточну базу
+
+Щоб не ламати поточний стиль коду, цей сценарій логічно будувати так само, як уже зроблені блоки для:
+
+- `карта дня`;
+- `налаштування`;
+- `баланс`;
+- `баг-репортів`;
+- `адмінських callback-потоків`.
+
+Для `Так / Ні` достатньо додати окремий `StatesGroup`, callback-обробники для вибору розкладу і окрему функцію в `gemini_client.py` або `day_card.py`, яка:
+
+- отримує питання;
+- формує короткий промпт;
+- повертає `ТАК` або `НІ` з коротким поясненням у стилі бота.
+
+### Відкладені розклади
+
+Розклад на 3 карти і Кельський хрест зараз описані як наступні етапи, але без реалізації в коді. Їх краще додавати окремо після завершення сценарію `Так / Ні`, щоб не змішувати різні логіки в один потік.
+
+## База даних
+
+Таблиця `users`:
 
 ```sql
 CREATE TABLE users (
     user_id INTEGER PRIMARY KEY,
     username TEXT,
-    day_card_mes INTEGER DEFAULT 0,         -- чи юзер отримав карту дня (flag)
-    today_give_card TEXT DEFAULT NULL,      -- система назва поточної карти
-    notify_time TEXT DEFAULT '09:00',       -- час розсилки (ГГ:ХХ, 24-bit format)
-    notify_enabled INTEGER DEFAULT 1        -- 1 = ON, 0 = OFF
-)
+    day_card_mes INTEGER DEFAULT 0,
+    today_give_card TEXT DEFAULT NULL,
+    notify_time TEXT DEFAULT '09:00',
+    notify_enabled INTEGER DEFAULT 1,
+    balance REAL DEFAULT 0.0
+);
 ```
 
-**Типові операції:**
-- INSERT OR IGNORE при /start
-- SELECT для read_user(user_id)
-- UPDATE для set_notify_time, set_today_card, toggle_notify_enabled
-- SELECT для send_daily_notifications (query по notify_time)
+Що зберігається:
 
-## Основні Flow
+- `user_id`, `username` — дані Telegram-користувача;
+- `day_card_mes` — чи вже була надіслана карта дня;
+- `today_give_card` — внутрішня назва карти, виданої сьогодні;
+- `notify_time` — час щоденного сповіщення;
+- `notify_enabled` — стан сповіщень;
+- `balance` — баланс користувача.
 
-### 1. /start → користувач створюється
-```
-Handler: cmd_start()
-  └─> database.create_user(user_id, username)
-      └─> INSERT OR IGNORE into users
-  └─> reply з main_menu
-```
+## Ключові файли
 
-### 2. "🃏 Карта дня" → генерація та відправка
-```
-Handler: daily_card()
-  └─> day_card.get_day_card_for_user(user_id)
-      ├─> database.read_user(user_id)
-      ├─> IF today_give_card IS NULL:
-      │   └─> tarrot_data.get_random_card()
-      │   └─> database.set_today_card(user_id, card_name)
-      ├─> tarrot_data.get_something_for_card(system_name, "name/description/classic_photo")
-      └─> gemini_client.generate_text(prompt_with_card_data)
-  └─> bot.send_photo(photo) + bot.send_message(message_text)
-```
+- `src/main.py` — ініціалізація бота, запуск polling і scheduler;
+- `src/handlers.py` — усі сценарії взаємодії;
+- `src/database.py` — створення таблиці, CRUD, баланс, сповіщення;
+- `src/day_card.py` — вибір карти, генерація тексту, відправка карти;
+- `src/gemini_client.py` — запит до моделі;
+- `src/keyboards.py` — клавіатури для меню та адмінки;
+- `src/tarrot_data.py` — опис карт і шляхи до зображень.
 
-### 3. Налаштування сповіщень → FSM
-```
-Handler: setting()
-  └─> reply із inline keyboards (toggle + time setter)
+## Налаштування середовища
 
-Callback: toggle_notify()
-  └─> database.toggle_notify_enabled(user_id)  [1-notify_enabled]
-  └─> refresh keyboard
+Створи файл `.env` у корені проєкту:
 
-Callback: set_notify_time()
-  └─> state.set_state(SettingsStates.waiting_for_time)
-  └─> user вводит час
-
-Handler: save_notify_time(message, state)
-  ├─> validate regex: ([01]\d|2[0-3]):([0-5]\d)
-  ├─> database.set_notify_time(user_id, time_str)
-  └─> state.clear()
+```env
+BOT_TOKEN=your_telegram_bot_token
+GEMINI_API_KEY=your_google_gemini_api_key
+GEMINI_MODEL=gemini-3.1-flash-lite
+ADMIN_ID=123456789
 ```
 
-### 4. Автоматичні сповіщення → Scheduler
-```
-Job: send_daily_notifications()  [runs every minute]
-  ├─> current_time = datetime.now().strftime("%H:%M")
-  ├─> users = database.get_users_by_notify_time(current_time)
-  │   └─> SELECT user_id WHERE notify_enabled=1 AND notify_time=?
-  ├─> FOR each user_id:
-  │   └─> day_card.send_daily_card_notification(bot, user_id)
-  │       ├─> day_card.get_day_card_for_user(user_id)  [sets card if null]
-  │       └─> bot.send_photo() + bot.send_message()
-  └─> print() на консоль
-```
+Потрібні змінні:
 
-**Щодня о 00:00:**
-```
-Job: database.reset_daily_cards()
-  └─> UPDATE users SET today_give_card=NULL, day_card_mes=0
-```
+- `BOT_TOKEN` — токен Telegram-бота;
+- `GEMINI_API_KEY` — ключ Google GenAI;
+- `GEMINI_MODEL` — назва моделі, за замовчуванням `gemini-3.1-flash-lite`;
+- `ADMIN_ID` — Telegram ID адміністратора.
 
-## API Функції
-
-### database.py
-```python
-def create_user(user_id: int, username: str)
-def read_user(user_id: int) -> tuple[6 items]
-def read_all_users() -> list[tuple]
-def set_day_card_true(user_id: int)
-def set_today_card(user_id: int, card_name: str)
-def delete_user(user_id: int)
-def reset_daily_cards()
-def set_notify_time(user_id: int, time_str: str)
-def toggle_notify_enabled(user_id: int) -> int  # returns new state
-def get_users_by_notify_time(notify_time: str) -> list[tuple]
-```
-
-### day_card.py
-```python
-async def generate_day_card_message(card_name: str, card_description: str) -> str
-async def get_day_card_for_user(user_id: int) -> tuple[str, str]  # (message_text, photo_path)
-async def send_daily_card_notification(bot, user_id: int) -> bool
-```
-
-### gemini_client.py
-```python
-async def generate_text(prompt: str) -> str
-```
-
-### handlers.py (Router)
-```python
-@router.message(Command("start"))
-async def cmd_start(message: Message)
-
-@router.message(F.text == "🃏 Карта дня")
-async def daily_card(message: Message)
-
-@router.message(F.text == "⚙️ Налаштування")
-async def setting(message: Message)
-
-@router.callback_query(F.data == "toggle_notify")
-async def toggle_notify(callback: CallbackQuery)
-
-@router.callback_query(F.data == "set_notify_time")
-async def ask_notify_time(callback: CallbackQuery, state: FSMContext)
-
-@router.message(SettingsStates.waiting_for_time)
-async def save_notify_time(message: Message, state: FSMContext)
-```
-
-## Встановлення і запуск
+## Запуск
 
 ```bash
-# 1. Clone & venv
 git clone https://github.com/K4VOOM/TgTarrotBot-2.0.git
 cd TgTarrotBot-2.0
 python -m venv venv
-source venv/bin/activate  # або venv\Scripts\activate на Windows
-
-# 2. Install deps
+venv\Scripts\activate
 pip install -r requirements.txt
-
-# 3. Configure .env (у кореневій папці проекту)
-echo "BOT_TOKEN=..." > .env
-echo "GEMINI_API_KEY=..." >> .env
-
-# 4. Run (Вибери один з варіантів)
-
-# Вариант 1: Прямо Python (рекомендовано)
 python src/main.py
-
-# Вариант 2: Через Python скрипт (работает на всех ОС)
-python run_bot.py
-
-# Вариант 3: Через shell скрипт (Linux/macOS)
-bash run.sh
-
-# Вариант 4: Через batch файл (Windows)
-run.bat
 ```
 
-**На різних пристроях код працюватиме без змін:**
-- Шляхи до БД та картинок побудовані з використанням `Path(__file__).parent`
-- Бот знайде все потрібне від кореня проекту
-- Можна запустити з будь-якого каталогу
+Після першого запуску:
 
-## Конфіг
+- створиться база `data/list_users.db`;
+- згенерується структура таблиці `users`, якщо її ще немає;
+- бот почне polling і scheduler.
 
-**.env:**
-```
-BOT_TOKEN=123456:ABC-DEF1...
-GEMINI_API_KEY=AIzaSy...
-```
+## Важливі деталі
 
-**Scheduler timezone:** `Europe/Kyiv` у main.py
+- `src/main.py` додає `src` у `sys.path`, тому запускати з кореня проєкту.
+- Шляхи до карт у `tarrot_data.py` відносні до кореня проєкту.
+- Фото карт лежать у `assets/card_photo/classic/...`.
+- Генерація тексту для карти дня йде через API, тому потрібен стабільний доступ до інтернету та коректний ключ.
 
-**Prompt для Gemini:** зберігається як PROMPT_TEMPLATE у day_card.py (структура: назва карти + здоров'я/фінанси/відносини + афірмація)
+## Примітка про поточний стан
 
-## Поточний стан
+У проєкті є реалізовані:
 
-✅ **Реалізовано:**
-- ✅ Message routing (start, daily card, settings)
-- ✅ Callback query handling (toggle, time setter)
-- ✅ FSM для вводу часу з валідацією
-- ✅ SQLite CRUD операції
-- ✅ Scheduler job з поміхутною розсилкою
-- ✅ Gemini інтеграція для генерації описів
-- ✅ Структура карт з фото
+- видання карти дня;
+- налаштування часу сповіщень;
+- адміністрування;
+- поповнення балансу;
+- баг-репорти.
 
-⏳ **TODO/WIP:**
-- 🔮 Росклад функціонал (Spread queries, layout logic)
-- 💳 Баланс/LoyaltyPoints система
-- 📊 Analytics (статистика карт)
-- 🗣️ Мультимова підтримка
-- 🔐 Error handling/logging
-
-## Розширення
-
-Для додавання функціоналу:
-
-1. **Новий message handler** → `handlers.py`, додати до router
-2. **Нові БД операції** → `database.py`, update schema якщо потрібно
-3. **Нові UI елементи** → `keyboards.py`
-4. **Новий scheduler job** → `main.py`, `scheduler.add_job(...)`
-
-Весь код асинхронний, використовуйте `await` для I/O операцій.
-
-## Залежності версії
-
-```
-aiogram>=3.0
-google-generativeai
-apscheduler
-python-dotenv
-```
+Якщо захочеш, я можу ще окремо привести README до більш “продуктового” вигляду: з коротким описом, скріншотами та секцією FAQ.

@@ -20,9 +20,17 @@ def init_db():
                 day_card_mes INTEGER DEFAULT 0,
                 today_give_card TEXT DEFAULT NULL,
                 notify_time TEXT DEFAULT '09:00',
-                notify_enabled INTEGER DEFAULT 1
+                notify_enabled INTEGER DEFAULT 1,
+                balance REAL DEFAULT 0.0
             )
         ''')
+        
+        # Додати колонку balance якщо її нема (для вже існуючих БД)
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN balance REAL DEFAULT 0.0")
+        except:
+            pass  # Колонка вже існує
+        
         conn.commit()
     print("БД успішно ініціалізована.")
 
@@ -44,7 +52,7 @@ def read_user(user_id: int):
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT user_id, username, day_card_mes, today_give_card, notify_time, notify_enabled FROM users WHERE user_id = ?",
+            "SELECT user_id, username, day_card_mes, today_give_card, notify_time, notify_enabled, balance FROM users WHERE user_id = ?",
             (user_id,)
         )
         return cursor.fetchone()
@@ -128,4 +136,46 @@ def get_users_by_notify_time(notify_time: str):
             "SELECT user_id FROM users WHERE notify_enabled = 1 AND notify_time = ?",
             (notify_time,)
         )
+        return cursor.fetchall()
+
+
+def get_balance(user_id: int) -> float:
+    """Отримати баланс користувача."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        return result[0] if result else 0.0
+
+
+def set_balance(user_id: int, balance: float):
+    """Встановити баланс користувача."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET balance = ? WHERE user_id = ?",
+            (balance, user_id)
+        )
+        conn.commit()
+
+
+def add_balance(user_id: int, amount: float):
+    """Додати суму до балансу користувача."""
+    current = get_balance(user_id)
+    set_balance(user_id, current + amount)
+
+
+def count_users() -> int:
+    """Отримати кількість користувачів."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM users")
+        return cursor.fetchone()[0]
+
+
+def get_all_users_list():
+    """Отримати список всіх користувачів."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id, username, balance FROM users ORDER BY user_id")
         return cursor.fetchall()

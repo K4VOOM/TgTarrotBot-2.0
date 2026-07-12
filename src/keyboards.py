@@ -25,5 +25,54 @@ def get_settings_keyboard(notify_time: str, notify_enabled: int) -> InlineKeyboa
         text=status_text,
         callback_data="toggle_notify"
     )
+    builder.button(
+        text="🐛 Репортити баг",
+        callback_data="report_bug"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_balance_keyboard() -> InlineKeyboardMarkup:
+    """Клавіатура для поповнення балансу."""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="💶 Поповнити через Mono",
+        callback_data="topup_mono"
+    )
+    builder.button(
+        text="⭐ Поповнити Telegram Stars",
+        callback_data="topup_stars_select"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_admin_keyboard() -> InlineKeyboardMarkup:
+    """Клавіатура для адміна."""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="📊 Статистика",
+        callback_data="admin_stats"
+    )
+    builder.button(
+        text="👥 Список користувачів",
+        callback_data="admin_users_list"
+    )
+    builder.button(
+        text="📢 Розсилка",
+        callback_data="admin_broadcast"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_mono_confirm_keyboard(user_id: int) -> InlineKeyboardMarkup:
+    """Клавіатура для підтвердження платежу через Mono."""
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="✅ Зарахувати баланс",
+        callback_data=f"approve_mono_{user_id}"
+    )
     builder.adjust(1)
     return builder.as_markup()

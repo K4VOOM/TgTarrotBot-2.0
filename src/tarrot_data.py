@@ -1,7 +1,6 @@
 import random
 from pathlib import Path
 
-# Портативний шлях до папки з картками
 PROJECT_ROOT = Path(__file__).parent.parent
 ASSETS_PATH = PROJECT_ROOT / "assets"
 
@@ -500,7 +499,6 @@ def get_random_card():
 
 def get_something_for_card(system_name: str, something: str):
     value = tarrot_desk[system_name][something]
-    # Якщо це шлях до фото, замінити на повний портативний шлях
     if something == "classic_photo" and isinstance(value, str):
         return str(ASSETS_PATH / value)
     return value
