@@ -75,7 +75,9 @@ def get_mono_confirm_keyboard(user_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def get_reading_menu_keyboard(yes_no_price: float, three_cards_price: float) -> InlineKeyboardMarkup:
+def get_reading_menu_keyboard(
+    yes_no_price: float, three_cards_price: float, celtic_cross_price: float
+) -> InlineKeyboardMarkup:
     """Клавіатура вибору типу розкладу в меню '🔮 Розклад'."""
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -87,7 +89,7 @@ def get_reading_menu_keyboard(yes_no_price: float, three_cards_price: float) -> 
         callback_data="reading_three_cards"
     )
     builder.button(
-        text="✝️ Кельський хрест",
+        text=f"✝️ Кельтський Хрест — {celtic_cross_price:.0f} грн",
         callback_data="reading_celtic_cross"
     )
     builder.adjust(1)

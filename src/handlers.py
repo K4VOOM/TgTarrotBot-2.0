@@ -37,6 +37,7 @@ class UserStates(StatesGroup):
     waiting_for_mono_screenshot = State()
     waiting_for_yes_no_question = State()
     waiting_for_three_cards_question = State()
+    waiting_for_celtic_cross_question = State()
 
 
 # Конфіг Mono банк
@@ -46,6 +47,7 @@ MONO_CARD = "4874 1000 2567 2372"
 # Ціни розкладів
 READING_YES_NO_PRICE = 10.0
 READING_THREE_CARDS_PRICE = 25.0
+READING_CELTIC_CROSS_PRICE = 50.0
 
 
 @router.message(Command("start"))
@@ -71,7 +73,7 @@ async def reading_menu(message: Message):
     await message.answer(
         "🔮 Вибери розклад:",
         reply_markup=keyboards.get_reading_menu_keyboard(
-            READING_YES_NO_PRICE, READING_THREE_CARDS_PRICE
+            READING_YES_NO_PRICE, READING_THREE_CARDS_PRICE, READING_CELTIC_CROSS_PRICE
         )
     )
 
@@ -143,11 +145,24 @@ async def reading_three_cards_start(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "reading_celtic_cross")
-async def reading_celtic_cross(callback: CallbackQuery):
-    await callback.answer(
-        "🔧 Кельський хрест поки в розробці. Слідкуй за оновленнями!",
-        show_alert=True
+async def reading_celtic_cross_start(callback: CallbackQuery, state: FSMContext):
+    balance = database.get_balance(callback.from_user.id)
+
+    if balance < READING_CELTIC_CROSS_PRICE:
+        await callback.answer(
+            f"❌ Недостатньо коштів. Потрібно {READING_CELTIC_CROSS_PRICE:.0f} ₴, "
+            f"на балансі {balance:.2f} ₴. Поповни баланс у меню 💳 Баланс.",
+            show_alert=True
+        )
+        return
+
+    await callback.message.answer(
+        "✝️ Кельтський Хрест — глибокий 10-карковий розклад. "
+        "Опиши ситуацію або постав питання, яке хочеш проаналізувати "
+        "(наприклад: «Що чекає на мої стосунки?», «Чи варто мені змінювати роботу?»):"
     )
+    await state.set_state(UserStates.waiting_for_celtic_cross_question)
+    await callback.answer()
 
 
 @router.message(UserStates.waiting_for_yes_no_question)
@@ -229,6 +244,59 @@ async def process_three_cards_question(message: Message, state: FSMContext):
 
     await message.answer_media_group(media=media_group)
     await message.answer(reading_text)
+    await state.clear()
+
+
+@router.message(UserStates.waiting_for_celtic_cross_question)
+async def process_celtic_cross_question(message: Message, state: FSMContext):
+    question = message.text.strip() if message.text else ""
+
+    if not question:
+        await message.answer("❌ Опиши питання чи ситуацію текстом.")
+        return
+
+    user_id = message.from_user.id
+    balance = database.get_balance(user_id)
+
+    if balance < READING_CELTIC_CROSS_PRICE:
+        await message.answer(
+            f"❌ Недостатньо коштів. Потрібно {READING_CELTIC_CROSS_PRICE:.0f} ₴, "
+            f"на балансі {balance:.2f} ₴. Поповни баланс у меню 💳 Баланс."
+        )
+        await state.clear()
+        return
+
+    if not await readings.is_valid_celtic_cross_question(question):
+        await message.answer(
+            "🤔 Спробуй описати ситуацію чи питання інакше — конкретніше "
+            "і по суті (наприклад: «Що чекає на мої стосунки?»)."
+        )
+        return
+
+    database.add_balance(user_id, -READING_CELTIC_CROSS_PRICE)
+
+    reading_text, photo_paths, card_names = await readings.get_celtic_cross_reading(question)
+
+    # Порядок фото в альбомі важливий — рівно 10 позицій розкладу підряд.
+    position_labels = [label for label, _ in readings.CELTIC_CROSS_POSITIONS]
+    media_group = [
+        InputMediaPhoto(
+            media=FSInputFile(photo_path),
+            caption=f"{label} — {card_name}"
+        )
+        for label, photo_path, card_name in zip(position_labels, photo_paths, card_names)
+    ]
+
+    await message.answer_media_group(media=media_group)
+
+    # Розпис по 10 позиціях + висновок може перевищити ліміт Telegram (4096
+    # символів на повідомлення), тому надсилаємо шматками за потреби.
+    if len(reading_text) > 4000:
+        for i in range(0, len(reading_text), 4000):
+            await message.answer(reading_text[i:i + 4000])
+    else:
+        await message.answer(reading_text)
+
     await state.clear()
 
 
