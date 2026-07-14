@@ -42,11 +42,6 @@ async def generate_day_card_message(card_name: str, card_description: str) -> st
 
 
 async def get_day_card_for_user(user_id: int) -> tuple[str, str]:
-    """
-    Повертає (message_text, photo_path):
-    - message_text — готовий текст повідомлення
-    - photo_path — відносний шлях до класичного фото карти
-    """
     user_data = database.read_user(user_id)
     system_name = user_data[3]  # today_give_card
 
@@ -63,7 +58,6 @@ async def get_day_card_for_user(user_id: int) -> tuple[str, str]:
 
 
 async def send_daily_card_notification(bot, user_id: int) -> bool:
-    """Відправляє карту дня користувачу. Повертає True якщо успішно."""
     try:
         message_text, photo_path = await get_day_card_for_user(user_id)
         photo = FSInputFile(photo_path)
