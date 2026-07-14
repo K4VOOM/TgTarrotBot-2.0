@@ -2,19 +2,12 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-# Знайти корінь проєкту та побудувати портативний шлях до БД
 PROJECT_ROOT = Path(__file__).parent.parent
 DB_PATH = PROJECT_ROOT / "data" / "list_users.db"
 
 
 @contextmanager
 def get_connection():
-    """Контекстний менеджер, що гарантовано закриває з'єднання.
-
-    sqlite3.Connection сам по собі як context manager лише
-    комітить/відкочує транзакцію, але НЕ закриває з'єднання,
-    тому робимо це явно у finally.
-    """
     conn = sqlite3.connect(str(DB_PATH))
     try:
         yield conn
@@ -37,11 +30,10 @@ def init_db():
             )
         ''')
 
-        # Додати колонку balance, якщо її нема (для вже існуючих БД)
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN balance REAL DEFAULT 0.0")
         except sqlite3.OperationalError:
-            pass  # Колонка вже існує
+            pass
 
         conn.commit()
     print("БД успішно ініціалізована.")
@@ -61,8 +53,6 @@ def create_user(user_id: int, username: str):
 
 
 def read_user(user_id: int):
-    """Повертає кортеж (user_id, username, day_card_mes, today_give_card,
-    notify_time, notify_enabled, balance) або None, якщо користувача нема."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -74,7 +64,6 @@ def read_user(user_id: int):
 
 
 def read_all_users():
-    """Повертає всі колонки для всіх користувачів."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users")
@@ -129,7 +118,6 @@ def set_notify_time(user_id: int, time_str: str):
 
 
 def toggle_notify_enabled(user_id: int) -> int:
-    """Перемикає notify_enabled (0<->1) і повертає нове значення."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -145,7 +133,6 @@ def toggle_notify_enabled(user_id: int) -> int:
 
 
 def get_users_by_notify_time(notify_time: str):
-    """Отримує всіх користувачів з увімкненими сповіщеннями на конкретний час."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -156,7 +143,6 @@ def get_users_by_notify_time(notify_time: str):
 
 
 def get_balance(user_id: int) -> float:
-    """Отримати баланс користувача."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
@@ -165,7 +151,6 @@ def get_balance(user_id: int) -> float:
 
 
 def set_balance(user_id: int, balance: float):
-    """Встановити баланс користувача."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -176,13 +161,11 @@ def set_balance(user_id: int, balance: float):
 
 
 def add_balance(user_id: int, amount: float):
-    """Додати суму до балансу користувача."""
     current = get_balance(user_id)
     set_balance(user_id, current + amount)
 
 
 def count_users() -> int:
-    """Отримати кількість користувачів."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM users")
@@ -190,7 +173,6 @@ def count_users() -> int:
 
 
 def get_all_users_list():
-    """Отримати список всіх користувачів (user_id, username, balance)."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT user_id, username, balance FROM users ORDER BY user_id")
