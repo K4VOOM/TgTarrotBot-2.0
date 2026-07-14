@@ -18,7 +18,6 @@ ADMIN_ID = config.ADMIN_ID
 
 
 def is_admin(user_id: int) -> bool:
-    """Перевіряє, чи є користувач адміністратором бота."""
     return user_id == ADMIN_ID
 
 
@@ -99,9 +98,6 @@ async def show_balance(message: Message):
         f"Виберіть спосіб поповнення:",
         reply_markup=keyboards.get_balance_keyboard()
     )
-
-
-# ===== TAROT READINGS (Розклади) =====
 
 @router.callback_query(F.data == "reading_yes_no")
 async def reading_yes_no_start(callback: CallbackQuery, state: FSMContext):
@@ -232,7 +228,6 @@ async def process_three_cards_question(message: Message, state: FSMContext):
 
     reading_text, photo_paths, card_names = await readings.get_three_cards_reading(question)
 
-    # Порядок фото в альбомі важливий: минуле -> теперішнє -> майбутнє.
     position_labels = [label for label, _ in readings.THREE_CARDS_POSITIONS]
     media_group = [
         InputMediaPhoto(
@@ -276,8 +271,7 @@ async def process_celtic_cross_question(message: Message, state: FSMContext):
     database.add_balance(user_id, -READING_CELTIC_CROSS_PRICE)
 
     reading_text, photo_paths, card_names = await readings.get_celtic_cross_reading(question)
-
-    # Порядок фото в альбомі важливий — рівно 10 позицій розкладу підряд.
+    
     position_labels = [label for label, _ in readings.CELTIC_CROSS_POSITIONS]
     media_group = [
         InputMediaPhoto(
@@ -289,8 +283,6 @@ async def process_celtic_cross_question(message: Message, state: FSMContext):
 
     await message.answer_media_group(media=media_group)
 
-    # Розпис по 10 позиціях + висновок може перевищити ліміт Telegram (4096
-    # символів на повідомлення), тому надсилаємо шматками за потреби.
     if len(reading_text) > 4000:
         for i in range(0, len(reading_text), 4000):
             await message.answer(reading_text[i:i + 4000])
@@ -351,7 +343,7 @@ async def topup_mono(callback: CallbackQuery, state: FSMContext):
         "💳 Номер картки:\n"
         f"{MONO_CARD}\n\n"
         "⚠️ ВАЖЛИВО: Суму обираєш ТИ коли скидаєш на банку.\n\n"
-        "Після скидання скорочення, надішли мені скріншот оплати."
+        "Після відправлення платіжу, надішли мені скріншот оплати."
     )
     await state.set_state(UserStates.waiting_for_mono_screenshot)
     await callback.answer()
@@ -398,8 +390,6 @@ async def process_mono_screenshot(message: Message, state: FSMContext):
 
     await state.clear()
 
-
-# ===== ADMIN COMMANDS =====
 
 @router.message(Command("admin"))
 async def admin_panel(message: Message):
@@ -550,9 +540,6 @@ async def cancel_broadcast(callback: CallbackQuery, state: FSMContext):
     await state.update_data(broadcast_cancelled=True)
     await callback.answer("✅ Розсилка відмінена!", show_alert=True)
 
-
-# ===== BUG REPORTING =====
-
 @router.callback_query(F.data == "report_bug")
 async def report_bug(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
@@ -584,8 +571,6 @@ async def process_bug_report(message: Message, state: FSMContext):
 
     await state.clear()
 
-
-# ===== TELEGRAM STARS PAYMENT =====
 
 @router.callback_query(F.data == "topup_stars_select")
 async def topup_stars_select(callback: CallbackQuery, state: FSMContext):
@@ -652,7 +637,6 @@ async def successful_payment(message: Message):
         user_id = int(payload_parts[2])
 
         if user_id == message.from_user.id:
-            # Додати баланс
             database.add_balance(user_id, float(stars))
 
             await message.answer(
@@ -663,8 +647,6 @@ async def successful_payment(message: Message):
     except Exception as e:
         await message.answer(f"❌ Помилка при обробці платежу: {e}")
 
-
-# ===== MONO PAYMENT CONFIRMATION =====
 
 @router.callback_query(F.data.startswith("approve_mono_"))
 async def approve_mono_payment(callback: CallbackQuery, state: FSMContext):
@@ -719,7 +701,7 @@ async def process_payment_amount(message: Message, state: FSMContext):
         try:
             await bot.send_message(user_id, user_message)
         except Exception:
-            pass  # Користувач міг заблокувати бота — не критично
+            pass
 
         await message.answer(
             f"✅ ПЛАТІЖ ЗАРАХОВАНО:\n\n"
