@@ -2,7 +2,6 @@ import os
 import asyncio
 import time
 from collections import deque
-
 from google import genai
 
 import config

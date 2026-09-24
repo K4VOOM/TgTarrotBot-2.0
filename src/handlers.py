@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, FSInputFile, CallbackQuery, InputMediaPhoto
+from aiogram.types import Message, FSInputFile, CallbackQuery, InputMediaPhoto, PreCheckoutQuery
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 import re
@@ -338,12 +338,12 @@ async def save_notify_time(message: Message, state: FSMContext):
 async def topup_mono(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         "💶 ПОПОВНЕННЯ ЧЕРЕЗ MONO BANK\n\n"
+        "Після відправлення платіжу, надішли мені скріншот оплати або будь яке інше фото-підтверждення.\n\n"
         "🔗 Посилання на Банку:\n"
         f"{MONO_JAR_LINK}\n\n"
         "💳 Номер картки:\n"
         f"{MONO_CARD}\n\n"
         "⚠️ ВАЖЛИВО: Суму обираєш ТИ коли скидаєш на банку.\n\n"
-        "Після відправлення платіжу, надішли мені скріншот оплати."
     )
     await state.set_state(UserStates.waiting_for_mono_screenshot)
     await callback.answer()
@@ -626,6 +626,9 @@ async def process_stars_amount(message: Message, state: FSMContext):
     except ValueError:
         await message.answer("❌ Введи число. Приклад: 50")
 
+@router.pre_checkout_query()
+async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
+    await pre_checkout_query.answer(ok=True)
 
 @router.message(F.successful_payment)
 async def successful_payment(message: Message):
